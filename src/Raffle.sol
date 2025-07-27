@@ -2,6 +2,27 @@
 
 pragma solidity ^0.8.0;
 
-contract Raffle{
+/**
+ * @title A simple Raffle contract
+ * @dev Implements Chainlink VRFv2.5 for random number generation
+ * @author Lokesh
+ * @notice This contract allows users to enter a raffle and win a prize.
+ */
+contract Raffle {
+    uint256 private immutable i_entraceFee;
+
+    constructor(uint256 entranceFee){
+        i_entraceFee= entranceFee;
+    }
+
+    function enterRaffle() public payable {}
+
+    function pickWinner() public {}
+
+    function getEntranceFee() external view returns(uint256){
+        return i_entraceFee;
+    }
+
+
     
 }
