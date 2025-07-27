@@ -39,16 +39,21 @@ contract Raffle {
     error Raffle__SendMoreToEnterRaffle();
 
     uint256 private immutable i_entraceFee;
+    uint256 private immutable i_interval;
     address payable[] private s_players;
+    uint256 private s_lastTimeStamp;
 
     //Events
     event RaffleEntered(address indexed player);
 
-    constructor(uint256 entranceFee){
+    constructor(uint256 entranceFee, uint256 interval){
         i_entraceFee= entranceFee;
+        i_interval= interval;
+        s_lastTimeStamp= block.timestamp;
+
     }
 
-    function enterRaffle() public payable {
+    function enterRaffle() external payable {
         // require(msg.value >= i_entraceFee, "Not enough Eth");
         // require(msg.value >= i_entraceFee, SendMoreToEnterRaffle()); MORE READABLE
         if(msg.value < i_entraceFee) revert Raffle__SendMoreToEnterRaffle();
@@ -58,7 +63,14 @@ contract Raffle {
         emit RaffleEntered(msg.sender);
     }
 
-    function pickWinner() public {}
+    //1. Get a random number
+    //2. Use the random number to pick a winning player
+    //3. Be automatically called the pickWinner fn
+    function pickWinner() external {
+        //check to see if enough time has passed
+        if((block.timestamp - s_lastTimeStamp) < i_interval) revert();
+
+    }
 
     function getEntranceFee() external view returns(uint256){
         return i_entraceFee;
