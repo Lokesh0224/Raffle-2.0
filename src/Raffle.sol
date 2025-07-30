@@ -39,6 +39,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     error Raffle__SendMoreToEnterRaffle();
     error Raffle__TransferFailed();
     error Raffle__RaffleNotOpen();
+    error Raffle__UpkeepNotSatisfied(uint256 balance, uint256 playersLength, uint256 raffleState);
 
     enum RaffleState{ OPEN, CALCULATING }
 
@@ -87,12 +88,39 @@ contract Raffle is VRFConsumerBaseV2Plus {
         emit RaffleEntered(msg.sender);
     }
 
+    /**
+     * @dev This is the function that the Chainlink Keeper nodes call
+     * they look for `upkeepNeeded` to return True.
+     * the following should be true for this to return true:
+     * 1. The time interval has passed between raffle runs.
+     * 2. The lottery is open.
+     * 3. The contract has ETH.
+     * 4. There are players registered.
+     * 5. Implicitly, your subscription is funded with LINK.
+     */
+    function checkUpKeep(bytes calldata /* checkData */) 
+        public
+        view
+        returns (bool upkeepNeeded, bytes memory /* performData */) {
+
+            bool timeHasPassed = ((block.timestamp - s_lastTimeStamp) >= i_interval) ;
+            bool isOpen= s_raffleState==RaffleState.OPEN;
+            bool hasBalance= address(this).balance>0;
+            bool hasPlayers= s_players.length>0;
+            upkeepNeeded = (timeHasPassed && isOpen && hasBalance && hasPlayers);
+            return (upkeepNeeded, "");
+        }
+
     //1. Get a random number
     //2. Use the random number to pick a winning player
     //3. Be automatically called the pickWinner fn
-    function pickWinner() external {
+    function performUpkeep(bytes calldata /* performData */) external {
         //check to see if enough time has passed
-        if ((block.timestamp - s_lastTimeStamp) < i_interval) revert();
+        (bool upkeepNeeded, )= checkUpKeep("");
+        if(!upkeepNeeded){
+            revert Raffle__UpkeepNotSatisfied(address(this).balance, s_players.length, uint256(s_raffleState));
+        }
+
         s_raffleState= RaffleState.CALCULATING;
 
         VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient.RandomWordsRequest({
@@ -111,25 +139,28 @@ contract Raffle is VRFConsumerBaseV2Plus {
         uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
     }
 
+    //CEI => Checks, Effects, Interaction pattern
     function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {//we got the random number
+        //Checks
+
         //s_player= 10
         //randomNum= 345983459345
         //345983459345%10=34598345934
+
+        //Effects
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
-
         s_raffleState= RaffleState.OPEN;
         s_players= new address payable[](0); //reset it to a blank array
         s_lastTimeStamp= block.timestamp; //getting ready for the pickWinner()
+        emit WinnerPicked(s_recentWinner);
 
+        //Interaction (External Contract Interactions)
         (bool success, )= recentWinner.call{value: address(this).balance}("");
         if(!success){
             revert Raffle__TransferFailed();
         }
-
-        emit WinnerPicked(s_recentWinner);
-
 
     } 
 
