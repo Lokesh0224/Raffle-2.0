@@ -147,7 +147,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
         //we got the random number
         //Checks
 
-        //s_player= 10
+        //s_players= 10
         //randomNum= 345983459345
         //345983459345%10=34598345934
 
@@ -174,5 +174,10 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     function getRaffleState() external view returns (RaffleState) {
         return s_raffleState;
+    }
+
+    //To get the players
+    function getPlayer(uint256 indexOfPlayer) external view returns(address){
+        return s_players[indexOfPlayer];
     }
 }
