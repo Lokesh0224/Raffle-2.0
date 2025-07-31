@@ -30,10 +30,30 @@ contract RaffleTest is Test {
         gasLane = config.gasLane;
         subscriptionId = config.subscriptionId;
         callbackGasLimit = config.callbackGasLimit;
+
+        vm.deal(PLAYER, STARTING_PLAYER_BALANCE);
     }
 
     function testRaffleInitializesInOpenState() public view {
         /* assert(uint256(raffle.getRaffleState()) == 0; */
-        assert(raffle.getRaffleState() == Raffle.RaffleState.OPEN);
+        assert(raffle.getRaffleState() == Raffle.RaffleState.OPEN); /* Compare the received output with the expected output */
+    }
+
+    function testRaffleRevertsWhenYouDontPayEnough() public {
+        //Arrange
+        vm.prank(PLAYER); //the very next line is cheatcode so this line will work for the second next line
+        //Act / Assert
+        vm.expectRevert(Raffle.Raffle__SendMoreToEnterRaffle.selector); //expect the next line of code to revert with a specific custom error
+        raffle.enterRaffle(); // No ETH sent here
+    }
+
+    function testRaffleRecordsPlayersWhenTheyEntered() public{
+        //Arrange
+        vm.prank(PLAYER);
+        //Act 
+        raffle.enterRaffle{value: entranceFee}();//the test will fail when the PLAYER has zero funds, so use deal cheatcode
+        //Assert
+        address playerRecorded= raffle.getPlayer(0);//getPlayer(0) because there is only one PLAYER entering the raffle
+        assert(playerRecorded==PLAYER);
     }
 }
