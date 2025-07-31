@@ -8,7 +8,7 @@ import {HelperConfig} from "./HelperConfig.s.sol";
 contract DeployRaffle is Script {
     function run() public {}
 
-    function deployContract() internal returns (Raffle, HelperConfig) {
+    function deployContract() public returns (Raffle, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
 
