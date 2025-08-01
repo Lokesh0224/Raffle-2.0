@@ -50,35 +50,35 @@ contract RaffleTest is Test {
         raffle.enterRaffle(); // No ETH sent here
     }
 
-    function testRaffleRecordsPlayersWhenTheyEntered() public{
+    function testRaffleRecordsPlayersWhenTheyEntered() public {
         //Arrange
         vm.prank(PLAYER);
-        //Act 
-        raffle.enterRaffle{value: entranceFee}();//the test will fail when the PLAYER has zero funds, so use deal cheatcode
+        //Act
+        raffle.enterRaffle{value: entranceFee}(); //the test will fail when the PLAYER has zero funds, so use deal cheatcode
         //Assert
-        address playerRecorded= raffle.getPlayer(0);//getPlayer(0) because there is only one PLAYER entering the raffle
-        assert(playerRecorded==PLAYER);
+        address playerRecorded = raffle.getPlayer(0); //getPlayer(0) because there is only one PLAYER entering the raffle
+        assert(playerRecorded == PLAYER);
     }
 
-    function testEnteringRaffleEmitsEvent() public{
+    function testEnteringRaffleEmitsEvent() public {
         //Arrange
         vm.prank(PLAYER);
-        //Act 
+        //Act
         vm.expectEmit(true, false, false, false, address(raffle));
         emit RaffleEntered(PLAYER);
-        //Assert 
+        //Assert
         raffle.enterRaffle{value: entranceFee}();
     }
 
-    function testDontAllowPlayersToEnterWhileRaffleIsCalculating() public{
+    function testDontAllowPlayersToEnterWhileRaffleIsCalculating() public {
         //Arrange
         vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
-        vm.warp(block.timestamp + interval +1);
+        vm.warp(block.timestamp + interval + 1);
         vm.roll(block.number + 1);
         raffle.performUpkeep("");
 
-        //Act / Assert 
+        //Act / Assert
         vm.expectRevert(Raffle.Raffle__RaffleNotOpen.selector); //expect the next line of code to revert with a specific custom error
         vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
