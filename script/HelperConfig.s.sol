@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 
 import {Script} from "forge-std/Script.sol";
 import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
+import {LinkToken} from "../test/mocks/LinkToken.sol";
 
 abstract contract CodeConstants {
     uint256 public constant ETH_SEPOLIA_CHAIN_ID = 11155111;
@@ -27,6 +28,7 @@ contract HelperConfig is CodeConstants, Script {
         bytes32 gasLane;
         uint256 subscriptionId;
         uint32 callbackGasLimit;
+        address link;
     }
 
     NetworkConfig public localNetworkConfig;
@@ -61,8 +63,9 @@ contract HelperConfig is CodeConstants, Script {
             interval: 30, //seconds
             vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-            subscriptionId: 0,
-            callbackGasLimit: 500000
+            subscriptionId: 86458763221228731701056094893582376779349518906521961405529341608264829963970,
+            callbackGasLimit: 500000,
+            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
         });
     }
 
@@ -79,6 +82,11 @@ contract HelperConfig is CodeConstants, Script {
         vm.startBroadcast();
         VRFCoordinatorV2_5Mock vrfCoordinatorV2_5Mock =
             new VRFCoordinatorV2_5Mock(MOCK_BASE_FEE, MOCK_GAS_PRICE, MOCK_WEI_PER_UINT_LINK); //deployed contract address is returned
+
+        /*The contract mints 1,000,000 LINK (in 18 decimals, so 1_000_000 * 10^18)
+          to the msg.sender — i.e., whoever deployed it. */
+        LinkToken linkToken = new LinkToken();
+
         vm.stopBroadcast();
 
         localNetworkConfig = NetworkConfig({
@@ -88,7 +96,8 @@ contract HelperConfig is CodeConstants, Script {
             //doesn't matter, works no matter what
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             subscriptionId: 0,
-            callbackGasLimit: 500000
+            callbackGasLimit: 500000,
+            link: address(linkToken)
         });
         return localNetworkConfig;
     }
