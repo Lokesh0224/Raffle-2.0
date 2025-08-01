@@ -178,10 +178,13 @@ contract RaffleTest is Test {
                             FULLFILL RANDOM WORDS
     ///////////////////////////////////////////////////////////////////////*/
 
-    function testFullfillrandomWordsCanOnlyBeCalledAfterPerformUpkeep() public raffleEntered{
+    function testFullfillrandomWordsCanOnlyBeCalledAfterPerformUpkeep(uint256 randomRequestId) public raffleEntered{
         //Arrange/Act/Assert 
+
+        /* Ensure that fulfillRandomWords() cannot be called unless performUpkeep() 
+           was run and actually requested randomness. */
         vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
-        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(0, address(raffle));
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomRequestId, address(raffle));
     }
 
     
