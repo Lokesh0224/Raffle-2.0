@@ -6,7 +6,12 @@ libs = ["lib"]
 remappings = [
     '@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/',
     '@solmate/=lib/solmate/src/',
-    ]
+]
+
+fs_permissions = [
+    { access = "read", path = "./broadcast" },#read access to the broadcast folder
+    { access = "read", path = "./reports" },#read access to the reports folder
+]
 
 
 
