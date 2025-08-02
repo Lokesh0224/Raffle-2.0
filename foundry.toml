@@ -16,5 +16,6 @@ fs_permissions = [
 [fuzz]
 runs = 256
 
+private_key = "${PRIVATE_KEY}"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
